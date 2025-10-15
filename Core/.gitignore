@@ -1,0 +1,18 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+
+# User-specific files
+*.user
+*.suo
+
+# Sensitive configuration
+appsettings.json
+appsettings.*.json
+.env
+
+# Logs
+logs/
+*.log
