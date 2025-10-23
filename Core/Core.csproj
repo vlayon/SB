@@ -16,7 +16,11 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-		<PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+		<PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />    
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Data\Data.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="appsettings.json">

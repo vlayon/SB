@@ -1,4 +1,7 @@
 ﻿using Core.Services;
+using Data.Context;
+using Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +26,16 @@ namespace Core
                     // Bind configuration
                     var botConfig = context.Configuration.GetSection("BotConfig").Get<BotConfiguration>();
                     services.AddSingleton(botConfig);
+
+                    // Database
+                    services.AddDbContext<SnippingBotDbContext>(options =>
+                        options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
+
+                    // Repositories
+                    services.AddScoped<IPairRepository, PairRepository>();
+
+                    //TODO: Implement TradeRepository
+                    //services.AddScoped<ITradeRepository, TradeRepository>();
 
                     // Register services
                     services.AddSingleton<PairDetector>();

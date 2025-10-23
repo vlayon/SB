@@ -1,8 +1,10 @@
 ﻿using Core.Models;
+using Data.Repositories;
 using Microsoft.Extensions.Logging;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
+using System.Net.Mail;
 
 namespace Core.Services
 {
@@ -13,6 +15,7 @@ namespace Core.Services
         private readonly ILogger<PairDetector> _logger;
         private readonly TokenTrader _trader;
         private readonly HoneypotChecker _honeypotChecker;
+        private readonly IPairRepository _pairRepository;
 
         // Uniswap V2 Factory ABI for PairCreated event
         private const string PAIR_CREATED_EVENT_ABI = @"[{
@@ -31,13 +34,15 @@ namespace Core.Services
             BotConfiguration config,
             ILogger<PairDetector> logger,
             TokenTrader trader,
-            HoneypotChecker honeypotChecker)
+            HoneypotChecker honeypotChecker,
+            IPairRepository pairRepository)
         {
             _config = config;
             _logger = logger;
             _trader = trader;
             _honeypotChecker = honeypotChecker;
             _web3 = new Web3(_config.EthereumRpcUrl);
+            _pairRepository = pairRepository;
         }
 
         public async Task StartListeningAsync(CancellationToken cancellationToken)
@@ -108,6 +113,8 @@ namespace Core.Services
                 _logger.LogInformation("   Token0: {Token0}", token0);
                 _logger.LogInformation("   Token1: {Token1}", token1);
 
+                await ProcessNewPairToDB(eventLog);
+
                 // Check if one of the tokens is WETH
                 bool isWethPair = token0.Equals(_config.WethAddress, StringComparison.OrdinalIgnoreCase) ||
                                   token1.Equals(_config.WethAddress, StringComparison.OrdinalIgnoreCase);
@@ -161,6 +168,21 @@ namespace Core.Services
             {
                 _logger.LogError(ex, "Error processing new pair");
             }
+        }
+
+        private async Task ProcessNewPairToDB(EventLog<PairCreatedEventDTO> eventLog)
+        {
+            // Check if already exists
+            if (await _pairRepository.ExistsAsync(eventLog.Event.Pair))
+            {
+                _logger.LogInformation("    Pair with address {eventLog.Event.Pair} already exists", eventLog.Event.Pair);
+                return;
+            }
+
+            // Record new pair
+            var pair = await _pairRepository.CreateAsync(eventLog.Event.Token0, eventLog.Event.Token1, eventLog.Event.Pair);
+            _logger.LogInformation("    Pair with address {eventLog.Event.Pair} is recorded", eventLog.Event.Pair);
+
         }
     }
 }
