@@ -1,16 +1,17 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Core.Services
 {
     public class BotService : BackgroundService
     {
-        private readonly PairDetector _pairDetector;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<BotService> _logger;
 
-        public BotService(PairDetector pairDetector, ILogger<BotService> logger)
+        public BotService(IServiceScopeFactory scopeFactory, ILogger<BotService> logger)
         {
-            _pairDetector = pairDetector;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
@@ -20,13 +21,29 @@ namespace Core.Services
 
             try
             {
-                await _pairDetector.StartListeningAsync(stoppingToken);
+                await DoWorkAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Bot service cancellation requested.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fatal error in bot service");
                 throw;
             }
+        }
+
+        private async Task DoWorkAsync(CancellationToken cancellationToken)
+        {
+            // Create a scope and keep it alive for the duration of the listener.
+            // This lets us resolve scoped services (PairDetector, repositories, DbContext, etc.)
+            using var scope = _scopeFactory.CreateScope();
+            var pairDetector = scope.ServiceProvider.GetRequiredService<PairDetector>();
+
+            _logger.LogInformation("Starting PairDetector in scoped context.");
+            await pairDetector.StartListeningAsync(cancellationToken);
+            _logger.LogInformation("PairDetector stopped.");
         }
     }
 }

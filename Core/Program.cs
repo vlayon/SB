@@ -38,10 +38,10 @@ namespace Core
                     //services.AddScoped<ITradeRepository, TradeRepository>();
 
                     // Register services
-                    services.AddSingleton<PairDetector>();
-                    services.AddSingleton<TokenTrader>();
-                    services.AddSingleton<PriceMonitor>();
-                    services.AddSingleton<HoneypotChecker>();
+                    services.AddScoped<PairDetector>();
+                    services.AddScoped<TokenTrader>();
+                    services.AddScoped<PriceMonitor>();
+                    services.AddScoped<HoneypotChecker>();
                     services.AddHostedService<BotService>();
                 })
                 .ConfigureLogging((context, logging) =>
