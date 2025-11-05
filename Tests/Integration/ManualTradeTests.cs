@@ -42,10 +42,10 @@ namespace Tests.Integration
             {
                 EthereumRpcUrl = Environment.GetEnvironmentVariable("TEST_RPC_URL")
                     ?? "https://sepolia.infura.io/v3/YOUR_KEY",
-                PrivateKey = Environment.GetEnvironmentVariable("TEST_PRIVATE_KEY")
-                    ?? throw new InvalidOperationException("TEST_PRIVATE_KEY not set"),
-                WalletAddress = Environment.GetEnvironmentVariable("TEST_WALLET_ADDRESS")
-                    ?? throw new InvalidOperationException("TEST_WALLET_ADDRESS not set"),
+                //PrivateKey = Environment.GetEnvironmentVariable("TEST_PRIVATE_KEY")
+                //    ?? throw new InvalidOperationException("TEST_PRIVATE_KEY not set"),
+                //WalletAddress = Environment.GetEnvironmentVariable("TEST_WALLET_ADDRESS")
+                //    ?? throw new InvalidOperationException("TEST_WALLET_ADDRESS not set"),
                 UniswapV2FactoryAddress = "0x7E0987E5b3a30e3f2828572Bb659A548460a3003",
                 UniswapV2RouterAddress = "0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008",
                 WethAddress = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
