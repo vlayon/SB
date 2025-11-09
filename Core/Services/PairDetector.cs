@@ -180,7 +180,7 @@ namespace Core.Services
             }
 
             // Record new pair
-            var pair = await _pairRepository.CreateAsync(eventLog.Event.Token0, eventLog.Event.Token1, eventLog.Event.Pair);
+            var pair = await _pairRepository.CreatePairAsync(eventLog.Event.Token0, eventLog.Event.Token1, eventLog.Event.Pair);
             _logger.LogInformation("    Pair with address {eventLog.Event.Pair} is recorded", eventLog.Event.Pair);
 
         }

@@ -32,8 +32,9 @@ namespace Core
                         options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
 
                     // Repositories
+                    //services.AddScoped<IPairRepository, PairRepository>();
+                    services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
                     services.AddScoped<IPairRepository, PairRepository>();
-
                     //TODO: Implement TradeRepository
                     //services.AddScoped<ITradeRepository, TradeRepository>();
 

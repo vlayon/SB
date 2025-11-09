@@ -1,46 +1,35 @@
-﻿using Data.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using Data.Context;
 using Data.Entities;
 
 namespace Data.Repositories
 {
-    public class PairRepository : IPairRepository
+    public interface IPairRepository : IRepository<Pair>
     {
-        private readonly SnippingBotDbContext _context;
+        Task<Pair> CreatePairAsync(string token0, string token1, string pairAddress);
+        Task<bool> ExistsAsync(string pairAddress);
+    }
 
-        public PairRepository(SnippingBotDbContext context)
-        {
-            _context = context;
-        }
+    public class PairRepository : Repository<Pair>, IPairRepository
+    {
+        public PairRepository(SnippingBotDbContext context) : base(context) { }
 
-        public async Task<Pair> CreateAsync(string token0, string token1, string pairAddress)
+        public async Task<Pair> CreatePairAsync(string token0, string token1, string pairAddress)
         {
             var pair = new Pair
             {
                 FirstTokenAddress = token0,
                 SecondTokenAddress = token1,
-                PairAddress = pairAddress
+                PairAddress = pairAddress,
+                CreatedAt = DateTime.UtcNow
             };
 
-            _context.Pairs.Add(pair);
+            _dbSet.Add(pair);
             await _context.SaveChangesAsync();
             return pair;
         }
 
-        Task<bool> IPairRepository.ExistsAsync(string pairAddress)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<Pair?> IPairRepository.GetByAddressAsync(string pairAddress)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<List<Pair>> IPairRepository.GetRecentAsync(int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        // Other methods...
+        public Task<bool> ExistsAsync(string pairAddress) =>
+            _dbSet.AnyAsync(p => p.PairAddress == pairAddress);
     }
 }
