@@ -8,6 +8,8 @@ namespace Data.Repositories
     {
         Task<Pair> CreatePairAsync(string token0, string token1, string pairAddress);
         Task<bool> ExistsAsync(string pairAddress);
+
+        Task<Pair> GetPairAsync(string pairAddress);
     }
 
     public class PairRepository : Repository<Pair>, IPairRepository
@@ -31,5 +33,10 @@ namespace Data.Repositories
 
         public Task<bool> ExistsAsync(string pairAddress) =>
             _dbSet.AnyAsync(p => p.PairAddress == pairAddress);
+
+        public Task<Pair> GetPairAsync(string pairAddress)
+        {
+          return _dbSet.FirstOrDefaultAsync(p => p.PairAddress == pairAddress);
+        }
     }
 }

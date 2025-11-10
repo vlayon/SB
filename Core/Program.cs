@@ -35,8 +35,7 @@ namespace Core
                     //services.AddScoped<IPairRepository, PairRepository>();
                     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
                     services.AddScoped<IPairRepository, PairRepository>();
-                    //TODO: Implement TradeRepository
-                    //services.AddScoped<ITradeRepository, TradeRepository>();
+                    services.AddScoped<ITradeRepository, TradeRepository>();
 
                     // Register services
                     services.AddScoped<PairDetector>();

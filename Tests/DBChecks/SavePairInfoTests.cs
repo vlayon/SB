@@ -17,6 +17,7 @@ namespace Tests.DBChecks
     {
         private SnippingBotDbContext _context;
         private IPairRepository _pairRepository;
+        private ITradeRepository _tradeRepository;
         string token0Address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // Example DAI address
         string token1Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // Example WETH address
         string pairAddress = "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"; // Example DAI-WETH pair
@@ -29,6 +30,7 @@ namespace Tests.DBChecks
             var factory = new DesignTimeDbContextFactory();
             _context = factory.CreateDbContext(Array.Empty<string>());
             _pairRepository = new PairRepository(_context);
+            _tradeRepository = new TradeRepository(_context);
         }
 
         [SetUp]
@@ -56,13 +58,12 @@ namespace Tests.DBChecks
         }
 
         [Test]
-        public async Task When_CreateATrades_Then_ItShouldBeRecordedInDB()
+        public async Task When_CreateATradesWithBuyOrder_Then_ItShouldBeRecordedInDB()
         {
             // Arrange
 
             // Act
-            var dbPair = await _pairRepository.CreatePairAsync(token0Address, token1Address, pairAddress);
-
+            var trade = await _tradeRepository.CreateTrade();
             //var actualData = GetPairData(pairAddress);
 
             // Assert

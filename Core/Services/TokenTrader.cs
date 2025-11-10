@@ -1,4 +1,5 @@
 ﻿using Core.Models;
+using Data.Repositories;
 using Microsoft.Extensions.Logging;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
@@ -14,6 +15,8 @@ namespace Core.Services
         private readonly ILogger<TokenTrader> _logger;
         //private readonly PriceMonitor _priceMonitor;
         private readonly Account _account;
+        private readonly ITradeRepository _tradeRepository;
+        private readonly IPairRepository _pairRepository;
 
         // Uniswap V2 Router ABI (simplified - key functions only)
         private const string ROUTER_ABI = @"[
@@ -77,13 +80,17 @@ namespace Core.Services
 
         public TokenTrader(
             BotConfiguration config,
-            ILogger<TokenTrader> logger)
+            ILogger<TokenTrader> logger,
+            IPairRepository pairRepository,
+            ITradeRepository tradeRepository)
         {
             _config = config;
             _logger = logger;
             //_priceMonitor = priceMonitor;
             _account = new Account(config.PrivateKey);
             _web3 = new Web3(_account, config.EthereumRpcUrl);
+            _pairRepository = pairRepository;
+            _tradeRepository = tradeRepository;
         }
 
         public async Task<TradeResult> ExecuteBuyOrderAsync(TokenInfo tokenInfo)
@@ -147,18 +154,27 @@ namespace Core.Services
 
                     _logger.LogInformation("✅ Purchase complete. Token balance: {Balance}", tokenBalance);
 
-                    return new TradeResult
+                    var result = new TradeResult
                     {
+                        TokenAddressIn = _config.WethAddress,
+                        TokenAddressOut = tokenInfo.Address,
+                        Price = new HexBigInteger(amounts[0] / amounts[1]),                        
+                        Amount = tokenBalance,
+                        AmountDimension = "Token",
                         Success = true,
                         TransactionHash = txReceipt.TransactionHash,
-                        AmountOut = tokenBalance,
                         GasUsed = (decimal)txReceipt.GasUsed.Value
                     };
+
+                    ProcessTradeToDB(result, pairId: _pairRepository.GetPairAsync(tokenInfo.PairAddress).Id);
+                    return result;
                 }
                 else
                 {
                     _logger.LogError("❌ BUY FAILED - Transaction reverted");
-                    return new TradeResult { Success = false, ErrorMessage = "Transaction reverted" };
+                    var errorResult = new TradeResult { Success = false, ErrorMessage = "Transaction reverted" };
+                    ProcessTradeToDB(errorResult, pairId: _pairRepository.GetPairAsync(tokenInfo.PairAddress).Id);
+                    return errorResult;
                 }
             }
             catch (Exception ex)
@@ -224,22 +240,30 @@ namespace Core.Services
 
                     return new TradeResult
                     {
+                        TokenAddressIn = tokenInfo.Address,
+                        TokenAddressOut = _config.WethAddress,
+                        Price = new HexBigInteger(amounts[1] / amounts[0]),
+                        Amount = expectedEth,
+                        AmountDimension = "ETH",
                         Success = true,
-                        TransactionHash = txReceipt.TransactionHash,
-                        AmountOut = expectedEth,
+                        TransactionHash = txReceipt.TransactionHash,                        
                         GasUsed = (decimal)txReceipt.GasUsed.Value
                     };
                 }
                 else
                 {
                     _logger.LogError("❌ SELL FAILED - Transaction reverted");
-                    return new TradeResult { Success = false, ErrorMessage = "Transaction reverted" };
+                    var result = new TradeResult { Success = false, ErrorMessage = "Transaction reverted" };
+                    ProcessTradeToDB(result, pairId: _pairRepository.GetPairAsync(tokenInfo.PairAddress).Id);
+                    return result;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error executing sell order");
-                return new TradeResult { Success = false, ErrorMessage = ex.Message };
+                var errorResult = new TradeResult { Success = false, ErrorMessage = ex.Message };
+                ProcessTradeToDB(errorResult, pairId: _pairRepository.GetPairAsync(tokenInfo.PairAddress).Id);
+                return errorResult;
             }
         }
 
@@ -274,6 +298,48 @@ namespace Core.Services
             );
 
             _logger.LogInformation("Token approved for trading");
+        }
+
+        private void ProcessTradeToDB(TradeResult tradeResult, int pairId)
+        {
+            if (_tradeRepository == null)
+            {
+                _logger?.LogWarning("ITradeRepository is not available; skipping DB persistence.");
+                return;
+            }
+
+            // TODO: set the correct PairId based on your logic (currently using 0)
+            decimal priceValue = 0m;
+            if (tradeResult.Price != null)
+            {
+                try
+                {
+                    priceValue = (decimal)tradeResult.Price.Value;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to convert trade price to decimal; storing 0");
+                }
+            }
+
+            var createTask = _tradeRepository.CreateTradeAsync(
+                pairId: pairId,
+                price: priceValue,
+                amount: tradeResult.Amount,
+                amountDimension: tradeResult.AmountDimension ?? string.Empty,
+                tokenAddressIn: tradeResult.TokenAddressIn ?? string.Empty,
+                tokenAddressOut: tradeResult.TokenAddressOut ?? string.Empty,
+                success: tradeResult.Success,
+                transactionHash: tradeResult.TransactionHash ?? string.Empty,
+                gasUsed: tradeResult.GasUsed,
+                errorMessage: tradeResult.ErrorMessage ?? string.Empty
+            );
+
+            // Fire-and-forget but log failures
+            _ = createTask.ContinueWith(t =>
+            {
+                _logger?.LogError(t.Exception, "Error saving trade to DB");
+            }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }
