@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  snipbot-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q 'SELECT 1' || exit 1"]
+  snipbot:
+    build:
+      context: .
+      dockerfile: Core/Dockerfile
+    environment:
+      ETHEREUM_RPC_URL: ${ETHEREUM_RPC_URL}
+      PRIVATE_KEY: ${PRIVATE_KEY}
+      WALLET_ADDRESS: ${WALLET_ADDRESS}
+      MOCK_EXECUTE_REAL_TRADE: "true" # detection-only mode
+      ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=YourStrong!Passw0rd;"
+    ports:
+      - "8080:80"
+    depends_on:
+      snipbot-db:
+        condition: service_healthy

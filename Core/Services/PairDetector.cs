@@ -1,9 +1,11 @@
 ﻿using Core.Models;
 using Data.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using System.Net.Mail;
 
 namespace Core.Services
@@ -49,6 +51,8 @@ namespace Core.Services
         {
             _logger.LogInformation("Starting to listen for new pairs on Uniswap V2 Factory: {Factory}",
                 _config.UniswapV2FactoryAddress);
+
+            await Verify();
 
             var contract = _web3.Eth.GetContract(PAIR_CREATED_EVENT_ABI, _config.UniswapV2FactoryAddress);
             var pairCreatedEvent = contract.GetEvent("PairCreated");
@@ -102,6 +106,13 @@ namespace Core.Services
 
         private async Task ProcessNewPairAsync(EventLog<PairCreatedEventDTO> eventLog)
         {
+            // If configured to run detection-only (mock), skip real trading
+            if (_config.MockExecuteRealTrade)
+            {
+                _logger.LogInformation("MockExecuteRealTrade is enabled — pair recorded but skipping real trade for {Pair}", pairAddress);
+                return;
+            }
+
             try
             {
                 var token0 = eventLog.Event.Token0;
@@ -183,6 +194,17 @@ namespace Core.Services
             var pair = await _pairRepository.CreatePairAsync(eventLog.Event.Token0, eventLog.Event.Token1, eventLog.Event.Pair);
             _logger.LogInformation("    Pair with address {eventLog.Event.Pair} is recorded", eventLog.Event.Pair);
 
+        }
+
+        async Task Verify()
+        {
+            var pk = _config.PrivateKey;
+            var account = new Account(pk);
+            _logger.LogInformation("Derived address: " + account.Address);
+
+            var web3 = new Web3(_config.EthereumRpcUrl);
+            var balance = await web3.Eth.GetBalance.SendRequestAsync(account.Address);
+            _logger.LogInformation("Sepolia ETH balance: " + Web3.Convert.FromWei(balance.Value));
         }
     }
 }
