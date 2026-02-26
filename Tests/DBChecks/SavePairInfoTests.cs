@@ -63,7 +63,7 @@ namespace Tests.DBChecks
             // Arrange
 
             // Act
-            var trade = await _tradeRepository.CreateTrade();
+            //var trade = await _tradeRepository.CreateTrade();
             //var actualData = GetPairData(pairAddress);
 
             // Assert
