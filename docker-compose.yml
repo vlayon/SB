@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   snipbot-db:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -21,12 +20,12 @@ services:
       context: .
       dockerfile: Core/Dockerfile
     restart: unless-stopped
-   environment:
-    BotConfig__EthereumRpcUrl: ${ETHEREUM_RPC_URL}
-    BotConfig__PrivateKey: ${PRIVATE_KEY}
-    BotConfig__WalletAddress: ${WALLET_ADDRESS}
-    MOCK_EXECUTE_REAL_TRADE: "true"
-    ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=${SA_PASSWORD};"
+    environment:
+      BotConfig__EthereumRpcUrl: ${ETHEREUM_RPC_URL}
+      BotConfig__PrivateKey: ${PRIVATE_KEY}
+      BotConfig__WalletAddress: ${WALLET_ADDRESS}
+      MOCK_EXECUTE_REAL_TRADE: "true"
+      ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=${SA_PASSWORD};"
     ports:
       - "8080:80"
     depends_on:
