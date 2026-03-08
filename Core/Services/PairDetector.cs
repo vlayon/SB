@@ -109,7 +109,7 @@ namespace Core.Services
             // If configured to run detection-only (mock), skip real trading
             if (_config.MockExecuteRealTrade)
             {
-                _logger.LogInformation("MockExecuteRealTrade is enabled — pair recorded but skipping real trade for {Pair}", pairAddress);
+                _logger.LogInformation("MockExecuteRealTrade is enabled — pair recorded but skipping real trade for {Pair}", eventLog.Event.Pair);
                 return;
             }
 

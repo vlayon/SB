@@ -64,48 +64,48 @@ namespace Tests.Integration
             };
         }
 
-        [Test]
-        [Ignore("Manual integration test - requires real testnet ETH")]
-        public async Task ManualTrade_WithKnownToken_ShouldExecuteBuyAndSell()
-        {
-            // Arrange
-            var tokenAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // Example Sepolia USDC
-            var pairAddress = await FindPairAddressAsync(tokenAddress, _config.WethAddress);
+        //[Test]
+        //[Ignore("Manual integration test - requires real testnet ETH")]
+        //public async Task ManualTrade_WithKnownToken_ShouldExecuteBuyAndSell()
+        //{
+        //    // Arrange
+        //    var tokenAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // Example Sepolia USDC
+        //    var pairAddress = await FindPairAddressAsync(tokenAddress, _config.WethAddress);
 
-            Assert.That(pairAddress, Is.Not.Null.And.Not.Empty, "Should find pair for test token");
+        //    Assert.That(pairAddress, Is.Not.Null.And.Not.Empty, "Should find pair for test token");
 
-            var tokenInfo = new TokenInfo
-            {
-                Address = tokenAddress,
-                PairAddress = pairAddress,
-                Token0 = tokenAddress,
-                Token1 = _config.WethAddress,
-                DetectedAt = DateTime.UtcNow,
-                IsWethPair = true
-            };
+        //    var tokenInfo = new TokenInfo
+        //    {
+        //        Address = tokenAddress,
+        //        PairAddress = pairAddress,
+        //        Token0 = tokenAddress,
+        //        Token1 = _config.WethAddress,
+        //        DetectedAt = DateTime.UtcNow,
+        //        IsWethPair = true
+        //    };
 
-            var trader = new TokenTrader(_config, _traderLogger);
-            var monitor = new PriceMonitor(_config, _monitorLogger, trader);
-            var honeypotChecker = new HoneypotChecker(_config, _honeypotLogger);
+        //    var trader = new TokenTrader(_config, _traderLogger);
+        //    var monitor = new PriceMonitor(_config, _monitorLogger, trader);
+        //    var honeypotChecker = new HoneypotChecker(_config, _honeypotLogger);
 
-            // Act - Safety check
-            var isSafe = await honeypotChecker.CheckTokenSafetyAsync(tokenAddress, pairAddress);
-            Assert.That(isSafe, Is.True, "Token should pass safety checks");
+        //    // Act - Safety check
+        //    var isSafe = await honeypotChecker.CheckTokenSafetyAsync(tokenAddress, pairAddress);
+        //    Assert.That(isSafe, Is.True, "Token should pass safety checks");
 
-            // Act - Buy
-            var buyResult = await trader.ExecuteBuyOrderAsync(tokenInfo);
+        //    // Act - Buy
+        //    var buyResult = await trader.ExecuteBuyOrderAsync(tokenInfo);
 
-            // Assert Buy
-            Assert.That(buyResult.Success, Is.True, $"Buy should succeed: {buyResult.ErrorMessage}");
-            Assert.That(buyResult.TransactionHash, Is.Not.Empty);
-            Assert.That(buyResult.AmountOut, Is.GreaterThan(0), "Should receive tokens");
+        //    // Assert Buy
+        //    Assert.That(buyResult.Success, Is.True, $"Buy should succeed: {buyResult.ErrorMessage}");
+        //    Assert.That(buyResult.TransactionHash, Is.Not.Empty);
+        //    Assert.That(buyResult.Amount, Is.GreaterThan(0), "Should receive tokens");
 
-            // Act - Monitor and Sell
-            await monitor.MonitorAndSellAsync(tokenInfo);
+        //    // Act - Monitor and Sell
+        //    await monitor.MonitorAndSellAsync(tokenInfo);
 
-            // Note: Full assertion would require checking if sell executed
-            // This is a basic smoke test to verify the flow works
-        }
+        //    // Note: Full assertion would require checking if sell executed
+        //    // This is a basic smoke test to verify the flow works
+        //}
 
         [Test]
         [Ignore("Manual integration test")]
