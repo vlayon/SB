@@ -52,6 +52,13 @@ namespace Core
                 })
                 .Build();
 
+            // Auto-migrate on startup
+            using (var scope = host.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<SnippingBotDbContext>();
+                db.Database.Migrate();
+            }
+
             await host.RunAsync();
         }
     }
