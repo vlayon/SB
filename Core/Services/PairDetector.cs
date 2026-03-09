@@ -98,7 +98,7 @@ namespace Core.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error polling for new pairs");
+                    _logger.LogWarning("RPC connection issue: {Message}", ex.InnerException?.InnerException?.Message ?? ex.InnerException?.Message ?? ex.Message);
                     await Task.Delay(5000, cancellationToken);
                 }
             }
