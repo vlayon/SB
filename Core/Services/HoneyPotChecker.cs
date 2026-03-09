@@ -172,10 +172,16 @@ namespace Core.Services
             }
         }
 
+        [Nethereum.ABI.FunctionEncoding.Attributes.FunctionOutput]
         private class ReservesOutput
         {
+            [Nethereum.ABI.FunctionEncoding.Attributes.Parameter("uint112", "reserve0", 1)]
             public BigInteger Reserve0 { get; set; }
+
+            [Nethereum.ABI.FunctionEncoding.Attributes.Parameter("uint112", "reserve1", 2)]
             public BigInteger Reserve1 { get; set; }
+
+            [Nethereum.ABI.FunctionEncoding.Attributes.Parameter("uint32", "blockTimestampLast", 3)]
             public uint BlockTimestampLast { get; set; }
         }
     }
