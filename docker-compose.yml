@@ -25,7 +25,7 @@ services:
       BotConfig__PrivateKey: ${PRIVATE_KEY}
       BotConfig__WalletAddress: ${WALLET_ADDRESS}
       BotConfig__MockExecuteRealTrade: "true"
-      ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=${SA_PASSWORD};"
+      ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
     ports:
       - "8080:80"
     depends_on:
