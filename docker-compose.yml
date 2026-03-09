@@ -24,7 +24,7 @@ services:
       BotConfig__EthereumRpcUrl: ${ETHEREUM_RPC_URL}
       BotConfig__PrivateKey: ${PRIVATE_KEY}
       BotConfig__WalletAddress: ${WALLET_ADDRESS}
-      MOCK_EXECUTE_REAL_TRADE: "true"
+      BotConfig__MockExecuteRealTrade: "true"
       ConnectionStrings__DefaultConnection: "Server=snipbot-db,1433;Database=SnippBotDb;User Id=sa;Password=${SA_PASSWORD};"
     ports:
       - "8080:80"
